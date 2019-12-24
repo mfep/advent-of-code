@@ -112,8 +112,29 @@ with open('day19.txt') as f:
 def get(x, y):
     return Cpu(program).run([x,y])[0]
 
-world = {(y,x):get(x,y) for y,x in product(range(50), range(50))}
-print('part one', sum(world.values()))
-#print_world(world, 50)
+# world = {(y,x):get(x,y) for y,x in product(range(50), range(50))}
+# print('part one', sum(world.values()))
+# print_world(world, 50)
 
+width,height = 100,100
+start_col,left,top = 0,0,0
+while True:
+    if top % 100 == 0:
+        print(top)
+    if get(left,top) == 0:
+        if start_col == left:
+            left += 1
+            start_col = left
+        else:
+            top += 1
+            left = start_col
+    else:
+        if get(left + width - 1, top) == 0:
+            top += 1
+            left = start_col
+        elif get(left, top + height - 1) == 0:
+            left += 1
+        else:
+            break
+print(left,top)
 
