@@ -1,3 +1,5 @@
+import time
+from os import system
 from collections import defaultdict
 
 class Cpu():
@@ -109,9 +111,29 @@ def is_intersection(world, x, y):
         return False
     return x >= 1 and x < width - 1 and y >= 1 and y < height - 1 and world[y][x - 1] == '#' and world[y][x + 1] == '#' and world[y - 1][x] == '#' and world[y + 1][x] == '#'
 
+def display(output):
+    world = ''.join(chr(val) for val in output).splitlines()
+    return [line for line in world if len(line)]
+
 cpu = Cpu(program)
 output = cpu.run(None)
-world = ''.join(chr(val) for val in output).splitlines()
-world = [line for line in world if len(line)]
+world = display(output)
 print('part one', sum(sum(col * row for col in range(len(world[0])) if is_intersection(world, col, row)) for row in range(len(world))))
-print('\n'.join(world))
+#print('\n'.join(world))
+
+inp = []
+inp.append('A,A,B,C,B,C,B,C,B,A')
+inp.append('L,10,L,8,R,8,L,8,R,6')
+inp.append('R,6,R,8,R,8')
+inp.append('R,6,R,6,L,8,L,10')
+inp.append('n\n')
+inp_queue = [ord(char) for char in '\n'.join(inp)]
+program[0] = 2
+cpu = Cpu(program)
+output = cpu.run(None)
+print('\n'.join(display(output)))
+
+while inp_queue:
+    output = cpu.run(inp_queue.pop(0))
+    print('\n'.join(display(output[:-1])))
+print('part two', output[-1])
