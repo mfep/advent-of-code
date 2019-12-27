@@ -68,14 +68,14 @@ def accessible_portals(pos, portal_list, world):
 def get_other_exit(portal_list, portal_id, current_pos):
     return [pos for pos in portal_list[portal_id] if pos != current_pos][0]
 
-def pathfind_multilevel(pos, level, portal_list, world, history):
+def pathfind_recursive(pos, level, portal_list, world, history):
     print(level)
     def search_paths(accessible, dlevel):
         paths = []
         for pid, dst_pos in accessible.items():
             if pid == 'ZZ' or (pid, dst_pos[1], level) in history:
                 continue
-            distance_to_goal = pathfind_multilevel(get_other_exit(portal_list, pid, dst_pos[1]), level + dlevel, portal_list, world, history.union([(pid, dst_pos[1], level)]))
+            distance_to_goal = pathfind_recursive(get_other_exit(portal_list, pid, dst_pos[1]), level + dlevel, portal_list, world, history.union([(pid, dst_pos[1], level)]))
             paths.append(distance_to_goal + dst_pos[0] + 1 if distance_to_goal else None)
         paths = [path for path in paths if path]
         return min(paths) if paths else None
@@ -89,6 +89,30 @@ def pathfind_multilevel(pos, level, portal_list, world, history):
             return outer_found
     return search_paths(acc_inner, 1)
 
+def pathfind_loop(world, portal_list, max_level):
+    def add_branches(accessible, new_level, current_length):
+        for pid in [pid for pid in accessible.keys() if pid != 'ZZ']:
+            current = accessible[pid]
+            new_length = current_length + 1 + current[0]
+            new_pos = get_other_exit(portal_list, pid, current[1])
+            to_check_branch.append((new_pos, new_level, new_length))
+
+    to_check_branch = [(portal_list['AA'][0], 0, 0)]
+    solutions = []
+    while to_check_branch:
+        pos, level, path_length = to_check_branch.pop()
+        acc_outer, acc_inner = accessible_portals(pos, portal_list, world)
+        if level == 0 and 'ZZ' in acc_outer:
+            solutions.append(path_length + acc_outer['ZZ'][0])
+            print(solutions[-1])
+        elif level >= max_level:
+            continue
+        add_branches(acc_inner, level + 1, path_length)
+        if level > 0 and acc_outer:
+            add_branches(acc_outer, level - 1, path_length)
+    return min(solutions) if solutions else None
+
 W = direct_paths(lines)
-result = pathfind_multilevel(portal_connections['AA'][0], 0, portal_connections, W, set())
+#result = pathfind_recursive(portal_connections['AA'][0], 0, portal_connections, W, set())
+result = pathfind_loop(W, portal_connections, 100)
 print('part two', result)
